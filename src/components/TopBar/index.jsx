@@ -1,94 +1,131 @@
-import React, { useRef, useState } from "react";
-import { AppBar, Toolbar, Typography, Button, Box } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Checkbox,
+  FormControlLabel,
+  Button,
+} from "@mui/material";
+import { useLocation } from "react-router-dom";
 
-import { apiPost, apiPostForm } from "../../lib/api";
 import "./styles.css";
-import { useAuth } from "../../contexts/AuthContext";
+import fetchModel from "../../lib/fetchModelData";
+/**
+ * Define TopBar, a React component of Project 4.
+ */
+function TopBar({
+  advancedFeatures,
+  setAdvancedFeatures,
+  currentUser,
+  setCurrentUser,
+}) {
+  const BASE_API = "https://w2279d-8080.csb.app/";
+  const location = useLocation();
+  const pathPart = location.pathname.split("/");
+  const viewType = pathPart[1];
+  const id = pathPart[2];
 
+  const [userName, setUserName] = useState("");
+  const uploadInputRef = useRef(null);
 
-function TopBar({ loggedInUser, setLoggedInUser, onPhotoUploaded }) {
-  const navigate = useNavigate();
-  const fileInputRef = useRef(null);
-  const { user, logout } = useAuth();
-  const [uploadMessage, setUploadMessage] = useState("");
+  useEffect(() => {
+    if (id && (viewType === "users" || viewType === "photos")) {
+      fetchModel(`user/${id}`)
+        .then((result) =>
+          setUserName(`${result.data.first_name} ${result.data.last_name}`)
+        )
+        .catch((error) =>
+          console.error("Error fetching user for TopBar:", error)
+        );
+    } else {
+      setUserName("");
+    }
+  }, [id, viewType]);
+
+  let contextText = "";
+  if (userName && currentUser) {
+    if (viewType === "users") contextText = userName;
+    else if (viewType === "photos") contextText = `Photos of ${userName}`;
+  }
 
   const handleLogout = async () => {
     try {
-      await apiPost("/admin/logout", {});
-      setLoggedInUser(null);
-      navigate("/login-register");
-    } catch (error) {
-      console.error(error);
+      await fetch(BASE_API + "admin/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+      setCurrentUser(null);
+      localStorage.removeItem("currentUser");
+    } catch (err) {
+      console.error("Logout failed", err);
     }
   };
 
-  const handleAddPhotoClick = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
-  };
+  // Tính năng Upload Photo
+  const handleUploadButtonClicked = async (e) => {
+    e.preventDefault();
+    if (uploadInputRef.current.files.length > 0) {
+      const domForm = new FormData();
+      domForm.append("uploadedphoto", uploadInputRef.current.files[0]);
 
-  const handleUploadPhoto = async (event) => {
-    const file = event.target.files[0];
-
-    if (!file) {
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("photo", file);
-
-    try {
-      await apiPostForm("/photos/new", formData);
-
-      setUploadMessage("Photo uploaded successfully");
-
-      if (onPhotoUploaded) {
-        onPhotoUploaded();
+      try {
+        const response = await fetch(BASE_API + "photos/new", {
+          method: "POST",
+          body: domForm,
+          credentials: "include",
+        });
+        if (!response.ok) throw new Error("Upload failed");
+        alert("Photo uploaded successfully! Refresh the page to see it.");
+        uploadInputRef.current.value = ""; // Reset input
+      } catch (err) {
+        console.error("Error uploading photo:", err);
       }
-
-      navigate(`/photos/${loggedInUser._id}`);
-    } catch (error) {
-      setUploadMessage(error.message);
-    } finally {
-      event.target.value = "";
     }
   };
 
   return (
     <AppBar className="topbar-appBar" position="absolute">
-      <Toolbar>
-        <Typography variant="h6" sx={{ flexGrow: 1 }}>
-          Photo Sharing App
+      <Toolbar className="topbar-toolbar">
+        <Typography variant="h5" color="inherit">
+          {currentUser ? `Hi ${currentUser.first_name}` : "Please Login"}
         </Typography>
-
-        {loggedInUser ? (
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <Typography>Hi {loggedInUser.first_name}</Typography>
-
-            <Button color="inherit" onClick={handleAddPhotoClick}>
-              Add Photo
-            </Button>
-
+        {currentUser && (
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={advancedFeatures}
+                onChange={(e) => setAdvancedFeatures(e.target.checked)}
+                color="default"
+              />
+            }
+            label="Enable Advanced Features"
+          />
+        )}
+        <Typography variant="h5" color="inherit">
+          {contextText}
+        </Typography>
+        {currentUser && (
+          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+            {/* Nút Upload ảnh */}
             <input
               type="file"
               accept="image/*"
-              ref={fileInputRef}
+              ref={uploadInputRef}
               style={{ display: "none" }}
-              onChange={handleUploadPhoto}
+              onChange={handleUploadButtonClicked}
             />
-
-          <button onClick={handleLogout}>
-            Logout
-          </button>
-
-            {uploadMessage && (
-              <Typography variant="body2">{uploadMessage}</Typography>
-            )}
-          </Box>
-        ) : (
-          <Typography>Please Login</Typography>
+            <Button
+              variant="contained"
+              color="success"
+              onClick={() => uploadInputRef.current.click()}
+            >
+              Add Photo
+            </Button>
+            <Button variant="contained" color="error" onClick={handleLogout}>
+              Logout
+            </Button>
+          </div>
         )}
       </Toolbar>
     </AppBar>

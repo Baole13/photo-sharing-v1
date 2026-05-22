@@ -1,4 +1,8 @@
 .topbar-appBar {
-  height: 60px;
+  height: 60;
   justify-content: center;
+}
+.topbar-toolbar {
+  display: flex;
+  justify-content: space-between;
 }

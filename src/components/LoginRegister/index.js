@@ -1,177 +1,179 @@
-import React, {
-  useState,
-} from "react";
+import React, { useState } from "react";
+import { Typography, Button, TextField, Divider } from "@mui/material";
 
-import {
-  useNavigate,
-} from "react-router-dom";
+function LoginRegister({ setCurrentUser }) {
+  // States cho form Login
+  const [loginName, setLoginName] = useState("");
+  const [password, setPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
 
-import {
-  loginApi,
-  registerApi,
-} from "../../api/authApi";
+  // States cho form Register
+  const [regLoginName, setRegLoginName] = useState("");
+  const [regPassword, setRegPassword] = useState("");
+  const [regPasswordConfirm, setRegPasswordConfirm] = useState("");
+  const [regFirstName, setRegFirstName] = useState("");
+  const [regLastName, setRegLastName] = useState("");
+  const [regMessage, setRegMessage] = useState("");
 
-import { useAuth } from "../../contexts/AuthContext";
+  const BASE_API = "https://w2279d-8080.csb.app/";
 
-export default function LoginRegister() {
-  const navigate = useNavigate();
-
-  const { login } =
-    useAuth();
-
-  const [isRegister, setIsRegister] =
-    useState(false);
-
-  const [formData, setFormData] =
-    useState({
-      login_name: "",
-      password: "",
-      first_name: "",
-      last_name: "",
-    });
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-
-      [e.target.name]:
-        e.target.value,
-    });
-  };
-
-  const handleSubmit = async (
-    e
-  ) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-
     try {
-      if (isRegister) {
-        await registerApi(
-          formData
-        );
+      // Sử dụng fetch với POST request
+      const response = await fetch(`${BASE_API}admin/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          login_name: loginName,
+          password: password,
+        }),
+        credentials: "include", // gửi/nhận session cookie
+      });
 
-        alert(
-          "Register successful"
-        );
-
-        setIsRegister(false);
-
-        return;
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText);
       }
 
-      const result =
-        await loginApi({
-          login_name:
-            formData.login_name,
-
-          password:
-            formData.password,
-        });
-
-      login(
-        result.user,
-        result.token
-      );
-
-      navigate(
-        `/users/${result.user._id}`
-      );
+      // Parse JSON và cập nhật trạng thái user
+      const data = await response.json();
+      setCurrentUser(data);
+      localStorage.setItem("currentUser", JSON.stringify(data));
+      setLoginError("");
     } catch (error) {
-      alert(error.message);
+      setLoginError("Login failed: " + error.message);
+    }
+  };
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+
+    if (regPassword !== regPasswordConfirm) {
+      setRegMessage("Passwords do not match!");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${BASE_API}user`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          login_name: regLoginName,
+          password: regPassword,
+          first_name: regFirstName,
+          last_name: regLastName,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText);
+      }
+
+      setRegMessage("Registration successful! You can now log in.");
+      setRegLoginName("");
+      setRegPassword("");
+      setRegPasswordConfirm("");
+      setRegFirstName("");
+      setRegLastName("");
+    } catch (error) {
+      setRegMessage("Registration failed: " + error.message);
     }
   };
 
   return (
     <div>
-      <h2>
-        {isRegister
-          ? "Register"
-          : "Login"}
-      </h2>
-
+      <Typography variant="h4">Login</Typography>
       <form
-        onSubmit={handleSubmit}
+        onSubmit={handleLogin}
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "10px",
+          maxWidth: "300px",
+        }}
       >
-        <input
-          type="text"
-          name="login_name"
-          placeholder="Login Name"
-          value={
-            formData.login_name
-          }
-          onChange={
-            handleChange
-          }
+        <TextField
+          label="Login Name"
+          value={loginName}
+          onChange={(e) => setLoginName(e.target.value)}
           required
         />
-
-        <input
+        <TextField
+          label="Password"
           type="password"
-          name="password"
-          placeholder="Password"
-          value={
-            formData.password
-          }
-          onChange={
-            handleChange
-          }
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
           required
         />
-
-        {isRegister && (
-          <>
-            <input
-              type="text"
-              name="first_name"
-              placeholder="First Name"
-              value={
-                formData.first_name
-              }
-              onChange={
-                handleChange
-              }
-              required
-            />
-
-            <input
-              type="text"
-              name="last_name"
-              placeholder="Last Name"
-              value={
-                formData.last_name
-              }
-              onChange={
-                handleChange
-              }
-              required
-            />
-          </>
-        )}
-
-        <button type="submit">
-          {isRegister
-            ? "Register"
-            : "Login"}
-        </button>
+        <Button variant="contained" color="primary" type="submit">
+          Login
+        </Button>
+        {loginError && <Typography color="error">{loginError}</Typography>}
       </form>
 
-      <p>
-        {isRegister
-          ? "Already have an account?"
-          : "Don't have an account?"}
-      </p>
+      <Divider style={{ margin: "30px 0" }} />
 
-      <button
-        onClick={() =>
-          setIsRegister(
-            !isRegister
-          )
-        }
+      <Typography variant="h4">Register</Typography>
+      <form
+        onSubmit={handleRegister}
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "10px",
+          maxWidth: "300px",
+        }}
       >
-        {isRegister
-          ? "Go to Login"
-          : "Go to Register"}
-      </button>
+        <TextField
+          label="Login Name"
+          value={regLoginName}
+          onChange={(e) => setRegLoginName(e.target.value)}
+          required
+        />
+        <TextField
+          label="First Name"
+          value={regFirstName}
+          onChange={(e) => setRegFirstName(e.target.value)}
+          required
+        />
+        <TextField
+          label="Last Name"
+          value={regLastName}
+          onChange={(e) => setRegLastName(e.target.value)}
+          required
+        />
+        <TextField
+          label="Password"
+          type="password"
+          value={regPassword}
+          onChange={(e) => setRegPassword(e.target.value)}
+          required
+        />
+        <TextField
+          label="Confirm Password"
+          type="password"
+          value={regPasswordConfirm}
+          onChange={(e) => setRegPasswordConfirm(e.target.value)}
+          required
+        />
+        <Button variant="contained" color="secondary" type="submit">
+          Register Me
+        </Button>
+        {regMessage && (
+          <Typography
+            color={regMessage.includes("successful") ? "primary" : "error"}
+          >
+            {regMessage}
+          </Typography>
+        )}
+      </form>
     </div>
   );
 }
+
+export default LoginRegister;

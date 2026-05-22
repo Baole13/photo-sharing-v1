@@ -274,8 +274,7 @@ const comment7 = {
 const comment8 = {
   _id: "57231f1a30e4351f4e9f4bf0",
   date_time: "2010-09-06 13:59:33",
-  comment:
-    "Made a new friend today! Well, they followed me " + "home, anyway.",
+  comment: "Made a new friend today! Well, they followed me " + "home, anyway.",
   user: rk,
   photo_id: photo8._id,
 };
