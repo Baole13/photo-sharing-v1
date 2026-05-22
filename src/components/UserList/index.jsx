@@ -1,21 +1,45 @@
 import React, { useEffect, useState } from "react";
-import fetchModel from "../../lib/fetchModelData";
 import { Link } from "react-router-dom";
+import { List, ListItem, ListItemText, Typography } from "@mui/material";
 
-export default function UserList() {
+import { apiGet } from "../../lib/api";
+
+function UserList() {
   const [users, setUsers] = useState([]);
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
-    fetchModel("/user/list").then(setUsers);
+    apiGet("/user/list")
+      .then((data) => {
+        setUsers(data);
+      })
+      .catch((error) => {
+        setErrorMessage(error.message);
+      });
   }, []);
 
+  if (errorMessage) {
+    return (
+      <Typography color="error" sx={{ padding: 2 }}>
+        {errorMessage}
+      </Typography>
+    );
+  }
+
   return (
-    <div>
+    <List component="nav">
       {users.map((user) => (
-        <Link key={user._id} to={`/users/${user._id}`}>
-          <p>{user.first_name} {user.last_name}</p>
-        </Link>
+        <ListItem
+          button
+          component={Link}
+          to={`/users/${user._id}`}
+          key={user._id}
+        >
+          <ListItemText primary={`${user.first_name} ${user.last_name}`} />
+        </ListItem>
       ))}
-    </div>
+    </List>
   );
 }
+
+export default UserList;
