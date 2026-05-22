@@ -1,68 +1,46 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { Box, Button, Typography } from "@mui/material";
+import {Typography, Button} from "@mui/material";
 
-import { apiGet } from "../../lib/api";
-
+import "./styles.css";
+import {Link, useParams} from "react-router-dom";
+import fetchModel from "../../lib/fetchModelData";
+/**
+ * Define UserDetail, a React component of Project 4.
+ */
 function UserDetail() {
-  const { userId } = useParams();
+    const { userId } = useParams();
+    const [user, setUser] = useState(null);
+    useEffect(() => {
+      fetchModel(`user/${userId}`)
+        .then((result) => setUser(result.data))
+        .catch((error) => console.error("Error fetching user details:", error));
+    }, [userId]);
 
-  const [user, setUser] = useState(null);
-  const [errorMessage, setErrorMessage] = useState("");
-
-  useEffect(() => {
-    setUser(null);
-    setErrorMessage("");
-
-    apiGet(`/user/${userId}`)
-      .then((data) => {
-        setUser(data);
-      })
-      .catch((error) => {
-        setErrorMessage(error.message);
-      });
-  }, [userId]);
-
-  if (errorMessage) {
+if (!user) {
+    return <Typography>Loading...</Typography>;
+  }
     return (
-      <Typography color="error" sx={{ padding: 2 }}>
-        {errorMessage}
-      </Typography>
-    );
-  }
-
-  if (!user) {
-    return <Typography sx={{ padding: 2 }}>Loading user detail...</Typography>;
-  }
-
-  return (
-    <Box sx={{ padding: 3 }}>
-      <Typography variant="h5" gutterBottom>
+        <>
+          <Typography variant="body1">
+            <Typography variant="h4">
         {user.first_name} {user.last_name}
       </Typography>
-
-      <Typography>
-        <strong>Location:</strong> {user.location}
-      </Typography>
-
-      <Typography>
-        <strong>Description:</strong> {user.description}
-      </Typography>
-
-      <Typography>
-        <strong>Occupation:</strong> {user.occupation}
-      </Typography>
-
-      <Button
-        variant="contained"
-        component={Link}
-        to={`/photos/${user._id}`}
-        sx={{ marginTop: 2 }}
+      
+      <Typography variant="body1">Location: {user.location}</Typography>
+      <Typography variant="body1">Occupation: {user.occupation}</Typography>
+      <Typography variant="body1">Description: {user.description}</Typography>
+      
+      <Button 
+        variant="contained" 
+        component={Link} 
+        to={`/photos/${userId}`} 
+        style={{ marginTop: '16px' }}
       >
-        View Photos
+       View Photos
       </Button>
-    </Box>
-  );
+          </Typography>
+        </>
+    );
 }
 
 export default UserDetail;

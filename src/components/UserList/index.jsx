@@ -1,44 +1,89 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
+import {
+  Divider,
+  List,
+  ListItem,
+  ListItemText,
+  Typography,
+  Chip,
+  Box,
+} from "@mui/material";
+
+import "./styles.css";
 import { Link } from "react-router-dom";
-import { List, ListItem, ListItemText, Typography } from "@mui/material";
-
-import { apiGet } from "../../lib/api";
-
+import fetchModel from "../../lib/fetchModelData";
+import { useState, useEffect } from "react";
+/**
+ * Define UserList, a React component of Project 4.
+ */
 function UserList() {
   const [users, setUsers] = useState([]);
-  const [errorMessage, setErrorMessage] = useState("");
-
+  const [stats, setStats] = useState({});
   useEffect(() => {
-    apiGet("/user/list")
-      .then((data) => {
-        setUsers(data);
-      })
-      .catch((error) => {
-        setErrorMessage(error.message);
-      });
+    fetchModel("user/list")
+      .then((result) => setUsers(result.data))
+      .catch((error) => console.error("Error fetching user list:", error));
+    fetchModel("user/stats")
+      .then((result) => setStats(result.data))
+      .catch((error) => console.error("Error fetching user stats:", error));
   }, []);
-
-  if (errorMessage) {
-    return (
-      <Typography color="error" sx={{ padding: 2 }}>
-        {errorMessage}
-      </Typography>
-    );
-  }
-
   return (
-    <List component="nav">
-      {users.map((user) => (
-        <ListItem
-          button
-          component={Link}
-          to={`/users/${user._id}`}
-          key={user._id}
-        >
-          <ListItemText primary={`${user.first_name} ${user.last_name}`} />
-        </ListItem>
-      ))}
-    </List>
+    <div>
+      <Typography variant="h6" gutterBottom>
+        User List:
+      </Typography>
+      <List component="nav">
+        {users ? (
+          users.map((item) => {
+            const userStats = stats[item._id] || {
+              photoCount: 0,
+              commentCount: 0,
+            };
+            return (
+              <React.Fragment key={item._id}>
+                <ListItem button component={Link} to={`/users/${item._id}`}>
+                  <ListItemText
+                    primary={`${item.first_name} ${item.last_name}`}
+                  />
+                  <Box display="flex" gap={1}>
+                    <Link
+                      to={`/photos/${item._id}`}
+                      onClick={(e) => e.stopPropagation()}
+                      style={{ textDecoration: "none" }}
+                    >
+                      <Chip
+                        label={userStats.photoCount}
+                        size="small"
+                        style={{ backgroundColor: "#4caf50", color: "white" }}
+                      />
+                    </Link>
+                    <Link
+                      to={`/comments/${item._id}`}
+                      onClick={(e) => e.stopPropagation()}
+                      style={{ textDecoration: "none" }}
+                    >
+                      <Chip
+                        label={userStats.commentCount}
+                        size="small"
+                        clickable
+                        style={{
+                          backgroundColor: "#f44336",
+                          color: "white",
+                          cursor: "pointer",
+                        }}
+                      />
+                    </Link>
+                  </Box>
+                </ListItem>
+                <Divider />
+              </React.Fragment>
+            );
+          })
+        ) : (
+          <Typography>Loading...</Typography>
+        )}
+      </List>
+    </div>
   );
 }
 

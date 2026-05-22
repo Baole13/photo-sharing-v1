@@ -20,7 +20,7 @@ function TopBar({
   currentUser,
   setCurrentUser,
 }) {
-  const BASE_API = "https://w2279d-8080.csb.app/";
+  const BASE_API = "https://2pqjg8-8080.csb.app/";
   const location = useLocation();
   const pathPart = location.pathname.split("/");
   const viewType = pathPart[1];

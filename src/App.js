@@ -8,7 +8,7 @@ import {
   Routes,
   Navigate,
 } from "react-router-dom";
-import {} from "@mui/material";
+
 import TopBar from "./components/TopBar";
 import UserDetail from "./components/UserDetail";
 import UserList from "./components/UserList";

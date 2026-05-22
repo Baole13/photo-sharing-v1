@@ -1,19 +1,24 @@
-import models from "../modelData/models";
-
+/**
+ * fetchModel - Fetch a model from the web server.
+ *
+ * @param {string} url      The URL to issue the GET request.
+ *
+ */
 function fetchModel(url) {
-  return new Promise((resolve) => {
-    if (url === "/user/list") {
-      resolve(models.userListModel());
-    } else if (url.startsWith("/user/")) {
-      const userId = url.replace("/user/", "");
-      resolve(models.userModel(userId));
-    } else if (url.startsWith("/photosOfUser/")) {
-      const userId = url.replace("/photosOfUser/", "");
-      const result = models.photoOfUserModel(userId);
-      resolve(result || []);
-    } else {
-      resolve(null);
-    }
+  const BASE_API = "https://2pqjg8-8080.csb.app";
+  return new Promise((resolve, reject) => {
+    fetch(BASE_API + url, {
+      method: "GET",
+      credentials: "include", // Đồng bộ để gửi session cookie lên server
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((data) => resolve({ data: data }))
+      .catch((error) => reject(error));
   });
 }
 
