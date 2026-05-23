@@ -4,7 +4,6 @@
   "private": true,
   "dependencies": {
     "@babel/plugin-proposal-decorators": "^7.24.0",
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.0",
     "@mui/material": "^5.15.14",
@@ -53,5 +52,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
   }
 }

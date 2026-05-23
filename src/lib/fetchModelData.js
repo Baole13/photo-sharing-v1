@@ -1,11 +1,5 @@
-/**
- * fetchModel - Fetch a model from the web server.
- *
- * @param {string} url      The URL to issue the GET request.
- *
- */
 function fetchModel(url) {
-  const BASE_API = "https://2pqjg8-8080.csb.app";
+  const BASE_API = "https://2pqjg8-8080.csb.app/";
   return new Promise((resolve, reject) => {
     fetch(BASE_API + url, {
       method: "GET",

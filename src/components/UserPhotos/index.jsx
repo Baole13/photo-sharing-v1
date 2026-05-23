@@ -9,7 +9,7 @@ import fetchModel from "../../lib/fetchModelData";
  * Define UserPhotos, a React component of Project 4.
  */
 function UserPhotos({ advancedFeatures, currentUser }) {
-  const BASE_API = "https://2pqjg8-8080.csb.app/";
+  const BASE_API = "https://w2279d-8080.csb.app/";
   const { userId } = useParams();
   const [photos, setPhotos] = useState(null);
 

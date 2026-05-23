@@ -15,7 +15,7 @@ function LoginRegister({ setCurrentUser }) {
   const [regLastName, setRegLastName] = useState("");
   const [regMessage, setRegMessage] = useState("");
 
-  const BASE_API = "https://w2279d-8080.csb.app/";
+  const BASE_API = "https://2pqjg8-8080.csb.app/";
 
   const handleLogin = async (e) => {
     e.preventDefault();
